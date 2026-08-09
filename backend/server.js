@@ -39,7 +39,43 @@ app.post('/api/produtos', (req, res) => {
     };
     produtos.push(novoProduto);
     res.status(201).json({mensagem: "Produto cadastrado com sucesso!", produto: novoProduto});
-})
+});
+
+// 4. DELETE
+app.delete('/api/produtos/:id', (req, res) => {
+    const {id} = req.params;
+
+    const idNumero = parseInt(id);
+    const indice = produtos.findIndex(p => p.id === idNumero)
+
+    if(indice == -1){
+        return res.status(404).json({message: "Produto não encontrado"})
+    }
+
+    // Remove o produto do array
+    produtos.splice(indice, 1);
+
+    res.json({message: "Produto deletado"});
+});
+
+// 5. PUT
+app.put('/api/produtos/:id', (req,res) => {
+    const {id} = req.params;
+    const {nome, preco, categoria} = req.body;
+
+    const idNumero = parseInt(id);
+    const produto = produtos.find(p => p.id === idNumero)
+
+    if(!produto){
+        return res.status(404).json({message: "Produto não encontrado"})
+    }
+
+    produto.nome = nome || produto.nome;
+    produto.preco = preco || produto.preco;
+    produto.categoria = categoria || produto.categoria;
+
+    res.json({message: "Produto atualizado com sucesso", produto});
+});
 
 // Ligando o servidor
 app.listen(3001, () => {
