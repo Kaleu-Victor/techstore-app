@@ -10,6 +10,7 @@ function App() {
   const [nome, setNome] = useState('')
   const [preco, setPreco] = useState('')
   const [categoria, setCategoria] = useState('')
+  const [quantidade, setQuantidade] = useState('')
 
   // Estado para saber qual produto está sendo editado
   const [produtoEmEdicao, setProdutoEmEdicao] = useState(null)
@@ -56,15 +57,16 @@ function App() {
     const novoProduto = {
       nome: nome,
       preco: parseFloat(preco),
-      categoria: categoria
+      categoria: categoria,
+      quantidade: parseInt(quantidade)
     }
 
     fetch('http://localhost:3001/api/produtos', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json' // Avisa a API o envio dos dados em JSON
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(novoProduto) // Converte o objeto JS em texto JSON
+      body: JSON.stringify(novoProduto)
     })
       .then((res) => res.json())
       .then(() => {
@@ -72,16 +74,18 @@ function App() {
         setNome('')
         setPreco('')
         setCategoria('')
+        setQuantidade('')
       })
       .catch((error) => console.error("Erro ao cadastrar produto:", error))
   }
 
   // 4. Iniciar Edição
   const iniciarEdicao = (produto) => {
-    setProdutoEmEdicao(produto) // Guarda o produto (e o id dele)
-    setNome(produto.nome)       // Coloca o nome no input
-    setPreco(produto.preco)     // Coloca o preço no input
-    setCategoria(produto.categoria) // Coloca a categoria no input
+    setProdutoEmEdicao(produto)
+    setNome(produto.nome) 
+    setPreco(produto.preco)
+    setCategoria(produto.categoria)
+    setQuantidade(produto.quantidade)
   }
 
   // 5. Atualizar Produto
@@ -91,7 +95,8 @@ function App() {
   const produtoAtualizado = {
     nome: nome,
     preco: parseFloat(preco),
-    categoria: categoria
+    categoria: categoria,
+    quantidade: parseInt(quantidade)
   }
   fetch(`http://localhost:3001/api/produtos/${produtoEmEdicao.id}`, {
     method: 'PUT',
@@ -102,11 +107,12 @@ function App() {
   })
     .then((res) => res.json())
     .then(() => {
-      carregarProdutos()       // Atualiza a lista
-      setProdutoEmEdicao(null) // Sai do modo de edição
+      carregarProdutos()  
+      setProdutoEmEdicao(null) 
       setNome('')
       setPreco('')
       setCategoria('')
+      setQuantidade('')
     })
     .catch((error) => console.error("Erro ao atualizar produto:", error))
   }
@@ -156,6 +162,17 @@ function App() {
           />
         </div>
 
+        <div className="form-group">
+          <input
+            type="number"
+            min="0"
+            placeholder="Quantidade em estoque"
+            value={quantidade}
+            onChange={(e) => setQuantidade(e.target.value)}
+            required
+          />
+        </div>
+
         <div className="button-group">
           <button
             type="submit"
@@ -190,6 +207,7 @@ function App() {
             <div className="produto-info">
               <strong>{produto.nome}</strong>
               <p>Categoria: {produto.categoria}</p>
+              <p className="quantidade">Quantidade: {produto.quantidade}</p>
               <span className="preco">
                 R$ {produto.preco.toFixed(2)}
               </span>
