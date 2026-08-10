@@ -19,16 +19,7 @@ app.get('/api/produtos', (req, res) => {
     res.json(produtos);
 });
 
-// 2. GET: Simulando uma recomendação de produto
-app.get('/api/recomendacao', (req, res) => {
-    const produtoAleatorio = produtos[Math.floor(Math.random() * produtos.length)];
-    res.json({
-        mensagem: "Sugestão inteligente com base em suas preferências: ",
-        produto: produtoAleatorio
-    });
-});
-
-// 3. POST
+// 2. POST
 app.post('/api/produtos', (req, res) => {
     const {nome, preco, categoria} = req.body;
     const novoProduto = {
@@ -38,10 +29,10 @@ app.post('/api/produtos', (req, res) => {
         categoria
     };
     produtos.push(novoProduto);
-    res.status(201).json({mensagem: "Produto cadastrado com sucesso!", produto: novoProduto});
+    res.status(201).json({menssage: "Produto cadastrado com sucesso!", produto: novoProduto});
 });
 
-// 4. DELETE
+// 3. DELETE
 app.delete('/api/produtos/:id', (req, res) => {
     const {id} = req.params;
 
@@ -58,7 +49,7 @@ app.delete('/api/produtos/:id', (req, res) => {
     res.json({message: "Produto deletado"});
 });
 
-// 5. PUT
+// 4. PUT
 app.put('/api/produtos/:id', (req,res) => {
     const {id} = req.params;
     const {nome, preco, categoria} = req.body;
