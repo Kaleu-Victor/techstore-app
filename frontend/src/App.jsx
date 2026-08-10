@@ -5,7 +5,6 @@ import "./App.css"
 function App() {
   // Criando estado para guardar os produtos
   const [produtos, setProdutos] = useState([])
-  const [recomendacao, setRecomendacao] = useState(null)
 
   // Estados para controlar os campos do formulário
   const [nome, setNome] = useState('')
@@ -14,6 +13,9 @@ function App() {
 
   // Estado para saber qual produto está sendo editado
   const [produtoEmEdicao, setProdutoEmEdicao] = useState(null)
+
+  // Estado para controlar o modal de exclusão
+  const [produtoParaExcluir, setProdutoParaExcluir] = useState(null)
 
   // 1. Buscar a lista de produtos
   const carregarProdutos = () => {
@@ -26,25 +28,28 @@ function App() {
       carregarProdutos()
     }, [])
 
-  // 2. Recomendação de Produto
-  const buscarRecomendacao = () => {
-    fetch('http://localhost:3001/api/recomendacao')
-    .then((res) => res.json())
-    .then((dados) => setRecomendacao(dados.produto))
-    .catch((error) => console.error("Erro ao buscar recomendação:", error))
-  }
+
+  // 2. Abre o modal de exclusão guardando o produto selecionado
+  const confirmarExclusao = (produto) => {
+    setProdutoParaExcluir(produto)
+  }  
 
   // 3. Deletar Produto
-  const deletarProduto = (id) => {
-    fetch(`http://localhost:3001/api/produtos/${id}`, {
+  const deletarProduto = () => {
+    if (!produtoParaExcluir) return
+
+    fetch(`http://localhost:3001/api/produtos/${produtoParaExcluir.id}`, {
       method: 'DELETE',
     })
     .then((res) => res.json())
-    .then(() => carregarProdutos())
+    .then(() => {
+      carregarProdutos()
+      setProdutoParaExcluir(null)
+    })
     .catch((error) => console.error("Erro ao deletar produto:", error))
   }
 
-  // 4. Cadastrar Produto
+  // 3. Cadastrar Produto
   const cadastrarProduto = (e) => {
     e.preventDefault() // Evita que a página recarregue ao enviar o formulário
 
@@ -71,7 +76,7 @@ function App() {
       .catch((error) => console.error("Erro ao cadastrar produto:", error))
   }
 
-  // 5. Iniciar Edição
+  // 4. Iniciar Edição
   const iniciarEdicao = (produto) => {
     setProdutoEmEdicao(produto) // Guarda o produto (e o id dele)
     setNome(produto.nome)       // Coloca o nome no input
@@ -79,7 +84,7 @@ function App() {
     setCategoria(produto.categoria) // Coloca a categoria no input
   }
 
-  // 6. Atualizar Produto
+  // 5. Atualizar Produto
   const atualizarProduto = (e) => {
   e.preventDefault()
 
@@ -108,7 +113,9 @@ function App() {
   
   return (
     <div className="app-container">
-      <h1>TechStore - Catálogo</h1>
+      <h1 className="titulo-principal">
+        <span className="destaque">TechStock</span> - <span className="subtitulo">Controle de Estoque</span>
+      </h1>
 
       {/* FORMULÁRIO DE CADASTRO / EDIÇÃO */}
 
@@ -174,20 +181,6 @@ function App() {
         </div>
       </form>
 
-      {/* SEÇÃO DE RECOMENDAÇÃO */}
-      <div className="recomendacao-card">
-        <button onClick={buscarRecomendacao} className="btn-sugestao">
-          Pedir Sugestão Inteligente
-        </button>
-
-        {recomendacao && (
-          <div className="recomendacao-resultado">
-            <p>Sugestão para você:</p>
-            <span>{recomendacao.nome} - R$ {recomendacao.preco.toFixed(2)}</span>
-          </div>
-        )}
-      </div>
-
       <h3>Produtos Disponíveis:</h3>
 
       {/* LISTA DE PRODUTOS */}
@@ -213,7 +206,7 @@ function App() {
               </button>
 
               <button
-                onClick={() => deletarProduto(produto.id)}
+                onClick={() => confirmarExclusao(produto)}
                 className="btn-excluir"
               >
                 🗑️ Excluir
@@ -223,6 +216,29 @@ function App() {
           </li>
         ))}
       </ul>
+      {/* MODAL CUSTOMIZADO DE CONFIRMAÇÃO */}
+      {produtoParaExcluir && (
+      <div className="modal-overlay">
+        <div className="modal-content">
+          <h3>Confirmar Exclusão</h3>
+          <p>
+            Tem certeza que deseja excluir o produto{' '}
+            <strong>"{produtoParaExcluir.nome}"</strong>?
+          </p>
+          <div className="button-group">
+            <button className="btn-excluir" onClick={deletarProduto}>
+              Sim, Excluir
+            </button>
+            <button
+              className="btn-cancelar"
+              onClick={() => setProdutoParaExcluir(null)}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
     </div>
   )
 }
