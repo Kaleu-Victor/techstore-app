@@ -1,122 +1,124 @@
-import { useEffect } from "react";
-import { useState } from "react";
-import "./App.css"
+import { useEffect, useState } from "react";
+import "./App.css";
 
 function App() {
-  // Criando estado para guardar os produtos
-  const [produtos, setProdutos] = useState([])
+  const [produtos, setProdutos] = useState([]);
 
-  // Estados para controlar os campos do formulário
-  const [nome, setNome] = useState('')
-  const [preco, setPreco] = useState('')
-  const [categoria, setCategoria] = useState('')
-  const [quantidade, setQuantidade] = useState('')
+  // Estados do formulário
+  const [nome, setNome] = useState('');
+  const [preco, setPreco] = useState('');
+  const [categoria, setCategoria] = useState('');
+  const [quantidade, setQuantidade] = useState('');
 
-  // Estado para saber qual produto está sendo editado
-  const [produtoEmEdicao, setProdutoEmEdicao] = useState(null)
+  // Estados dos modais / edições
+  const [produtoEmEdicao, setProdutoEmEdicao] = useState(null);
+  const [produtoParaExcluir, setProdutoParaExcluir] = useState(null);
 
-  // Estado para controlar o modal de exclusão
-  const [produtoParaExcluir, setProdutoParaExcluir] = useState(null)
+  // Função auxiliar para resetar o formulário
+  const limparFormulario = () => {
+    setProdutoEmEdicao(null);
+    setNome('');
+    setPreco('');
+    setCategoria('');
+    setQuantidade('');
+  };
 
-  // 1. Buscar a lista de produtos
+  // 1. Buscar produtos
   const carregarProdutos = () => {
     fetch('http://localhost:3001/api/produtos')
-    .then((res) => res.json())
-    .then((dados) => setProdutos(dados))
-    .catch((error) => console.error("Erro ao carregar produtos:", error))
-  }
-      useEffect(() => {
-      carregarProdutos()
-    }, [])
+      .then((res) => res.json())
+      .then((dados) => setProdutos(dados))
+      .catch((error) => console.error("Erro ao carregar produtos:", error));
+  };
 
+  useEffect(() => {
+    carregarProdutos();
+  }, []);
 
-  // 2. Abre o modal de exclusão guardando o produto selecionado
-  const confirmarExclusao = (produto) => {
-    setProdutoParaExcluir(produto)
-  }  
+  // 2. Modal e Exclusão
+  const confirmarExclusao = (produto) => setProdutoParaExcluir(produto);
 
-  // 3. Deletar Produto
   const deletarProduto = () => {
-    if (!produtoParaExcluir) return
+    if (!produtoParaExcluir) return;
 
     fetch(`http://localhost:3001/api/produtos/${produtoParaExcluir.id}`, {
       method: 'DELETE',
     })
-    .then((res) => res.json())
-    .then(() => {
-      carregarProdutos()
-      setProdutoParaExcluir(null)
-    })
-    .catch((error) => console.error("Erro ao deletar produto:", error))
-  }
+      .then((res) => res.json())
+      .then(() => {
+        carregarProdutos();
+        setProdutoParaExcluir(null);
+      })
+      .catch((error) => console.error("Erro ao deletar produto:", error));
+  };
 
   // 3. Cadastrar Produto
   const cadastrarProduto = (e) => {
-    e.preventDefault() // Evita que a página recarregue ao enviar o formulário
+    e.preventDefault();
+
+    if (parseFloat(preco) < 0) {
+      alert("O preço do produto não pode ser negativo!");
+      return;
+    }
 
     const novoProduto = {
-      nome: nome,
+      nome,
       preco: parseFloat(preco),
-      categoria: categoria,
+      categoria,
       quantidade: parseInt(quantidade)
-    }
+    };
 
     fetch('http://localhost:3001/api/produtos', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(novoProduto)
     })
       .then((res) => res.json())
       .then(() => {
-        carregarProdutos()
-        setNome('')
-        setPreco('')
-        setCategoria('')
-        setQuantidade('')
+        carregarProdutos();
+        limparFormulario();
       })
-      .catch((error) => console.error("Erro ao cadastrar produto:", error))
-  }
+      .catch((error) => console.error("Erro ao cadastrar produto:", error));
+  };
 
   // 4. Iniciar Edição
   const iniciarEdicao = (produto) => {
-    setProdutoEmEdicao(produto)
-    setNome(produto.nome) 
-    setPreco(produto.preco)
-    setCategoria(produto.categoria)
-    setQuantidade(produto.quantidade)
-  }
+    setProdutoEmEdicao(produto);
+    setNome(produto.nome);
+    setPreco(produto.preco);
+    setCategoria(produto.categoria);
+    setQuantidade(produto.quantidade);
+  };
 
   // 5. Atualizar Produto
   const atualizarProduto = (e) => {
-  e.preventDefault()
+    e.preventDefault();
 
-  const produtoAtualizado = {
-    nome: nome,
-    preco: parseFloat(preco),
-    categoria: categoria,
-    quantidade: parseInt(quantidade)
-  }
-  fetch(`http://localhost:3001/api/produtos/${produtoEmEdicao.id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(produtoAtualizado)
-  })
-    .then((res) => res.json())
-    .then(() => {
-      carregarProdutos()  
-      setProdutoEmEdicao(null) 
-      setNome('')
-      setPreco('')
-      setCategoria('')
-      setQuantidade('')
+    if (parseFloat(preco) < 0) {
+      alert("O preço do produto não pode ser negativo!");
+      return;
+    }
+
+    const produtoAtualizado = {
+      nome,
+      preco: parseFloat(preco),
+      categoria,
+      quantidade: parseInt(quantidade)
+    };
+
+    fetch(`http://localhost:3001/api/produtos/${produtoEmEdicao.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(produtoAtualizado)
     })
-    .catch((error) => console.error("Erro ao atualizar produto:", error))
-  }
-  
+      .then((res) => res.json())
+      .then(() => {
+        carregarProdutos();
+        limparFormulario();
+      })
+      .catch((error) => console.error("Erro ao atualizar produto:", error));
+  };
+
   return (
     <div className="app-container">
       <h1 className="titulo-principal">
@@ -124,7 +126,6 @@ function App() {
       </h1>
 
       {/* FORMULÁRIO DE CADASTRO / EDIÇÃO */}
-
       <form
         onSubmit={produtoEmEdicao ? atualizarProduto : cadastrarProduto}
         className={`form-container ${produtoEmEdicao ? 'em-edicao' : ''}`}
@@ -144,7 +145,8 @@ function App() {
         <div className="form-group">
           <input
             type="number"
-            step="1"
+            step="0.01"
+            min="0"
             placeholder="Preço (ex: 99.90)"
             value={preco}
             onChange={(e) => setPreco(e.target.value)}
@@ -185,12 +187,7 @@ function App() {
             <button
               type="button"
               className="btn-cancelar"
-              onClick={() => {
-                setProdutoEmEdicao(null)
-                setNome('')
-                setPreco('')
-                setCategoria('')
-              }}
+              onClick={limparFormulario}
             >
               Cancelar
             </button>
@@ -213,8 +210,6 @@ function App() {
               </span>
             </div>
 
-            {/* ÁREA DOS BOTÕES */}
-
             <div className="acoes-btn">
               <button
                 onClick={() => iniciarEdicao(produto)}
@@ -230,35 +225,35 @@ function App() {
                 🗑️ Excluir
               </button>
             </div>
-
           </li>
         ))}
       </ul>
-      {/* MODAL CUSTOMIZADO DE CONFIRMAÇÃO */}
+
+      {/* MODAL DE CONFIRMAÇÃO */}
       {produtoParaExcluir && (
-      <div className="modal-overlay">
-        <div className="modal-content">
-          <h3>Confirmar Exclusão</h3>
-          <p>
-            Tem certeza que deseja excluir o produto{' '}
-            <strong>"{produtoParaExcluir.nome}"</strong>?
-          </p>
-          <div className="button-group">
-            <button className="btn-excluir" onClick={deletarProduto}>
-              Sim, Excluir
-            </button>
-            <button
-              className="btn-cancelar"
-              onClick={() => setProdutoParaExcluir(null)}
-            >
-              Cancelar
-            </button>
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Confirmar Exclusão</h3>
+            <p>
+              Tem certeza que deseja excluir o produto{' '}
+              <strong>"{produtoParaExcluir.nome}"</strong>?
+            </p>
+            <div className="button-group">
+              <button className="btn-excluir" onClick={deletarProduto}>
+                Sim, Excluir
+              </button>
+              <button
+                className="btn-cancelar"
+                onClick={() => setProdutoParaExcluir(null)}
+              >
+                Cancelar
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
