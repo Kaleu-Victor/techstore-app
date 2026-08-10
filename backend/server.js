@@ -9,9 +9,9 @@ app.use(express.json()); // Permite que a API entenda dados em formato JSON
 
 // "Banco de dados" temporário em memória
 const produtos = [
-  { id: 1, nome: "Fone Bluetooth Noise Canceling", preco: 299.90, categoria: "Audio" },
-  { id: 2, nome: "Teclado Mecânico RGB", preco: 180.00, categoria: "Periféricos" },
-  { id: 3, nome: "Mouse Sem Fio Ergonômico", preco: 120.00, categoria: "Periféricos" }
+  { id: 1, nome: "Fone Bluetooth Noise Canceling", preco: 299.90, categoria: "Audio", quantidade: 15},
+  { id: 2, nome: "Teclado Mecânico RGB", preco: 180.00, categoria: "Periféricos", quantidade: 8},
+  { id: 3, nome: "Mouse Sem Fio Ergonômico", preco: 120.00, categoria: "Periféricos", quantidade: 20}
 ];
 
 // 1. GET
@@ -21,12 +21,13 @@ app.get('/api/produtos', (req, res) => {
 
 // 2. POST
 app.post('/api/produtos', (req, res) => {
-    const {nome, preco, categoria} = req.body;
+    const {nome, preco, categoria, quantidade} = req.body;
     const novoProduto = {
         id: produtos.length + 1,
         nome,
         preco: parseFloat(preco),
-        categoria
+        categoria,
+        quantidade: parseInt(quantidade) || 0
     };
     produtos.push(novoProduto);
     res.status(201).json({menssage: "Produto cadastrado com sucesso!", produto: novoProduto});
@@ -52,7 +53,7 @@ app.delete('/api/produtos/:id', (req, res) => {
 // 4. PUT
 app.put('/api/produtos/:id', (req,res) => {
     const {id} = req.params;
-    const {nome, preco, categoria} = req.body;
+    const {nome, preco, categoria, quantidade} = req.body;
 
     const idNumero = parseInt(id);
     const produto = produtos.find(p => p.id === idNumero)
@@ -64,6 +65,7 @@ app.put('/api/produtos/:id', (req,res) => {
     produto.nome = nome || produto.nome;
     produto.preco = preco || produto.preco;
     produto.categoria = categoria || produto.categoria;
+    produto.quantidade = quantidade || produto.quantidade;
 
     res.json({message: "Produto atualizado com sucesso", produto});
 });
