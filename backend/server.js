@@ -3,74 +3,83 @@ const cors = require('cors');
 
 const app = express();
 
-// Middlewares (Configurações da API)
-app.use(cors()); // Libera conexões externas (como o React)
-app.use(express.json()); // Permite que a API entenda dados em formato JSON
+// Middlewares
+app.use(cors());
+app.use(express.json());
 
-// "Banco de dados" temporário em memória
+// Banco em memória
 const produtos = [
-  { id: 1, nome: "Fone Bluetooth Noise Canceling", preco: 299.90, categoria: "Audio", quantidade: 15},
-  { id: 2, nome: "Teclado Mecânico RGB", preco: 180.00, categoria: "Periféricos", quantidade: 8},
-  { id: 3, nome: "Mouse Sem Fio Ergonômico", preco: 120.00, categoria: "Periféricos", quantidade: 20}
+  { id: 1, nome: "Fone Bluetooth Noise Canceling", preco: 299.90, categoria: "Audio", quantidade: 15 },
+  { id: 2, nome: "Teclado Mecânico RGB", preco: 180.00, categoria: "Periféricos", quantidade: 8 },
+  { id: 3, nome: "Mouse Sem Fio Ergonômico", preco: 120.00, categoria: "Periféricos", quantidade: 20 }
 ];
 
-// 1. GET
+// 1. GET - Listar
 app.get('/api/produtos', (req, res) => {
     res.json(produtos);
 });
 
-// 2. POST
+// 2. POST - Cadastrar
 app.post('/api/produtos', (req, res) => {
-    const {nome, preco, categoria, quantidade} = req.body;
+    const { nome, preco, categoria, quantidade } = req.body;
+    const precoNumero = parseFloat(preco);
+
+    // Validação de Preço Negativo / Inválido
+    if (isNaN(precoNumero) || precoNumero < 0) {
+        return res.status(400).json({ message: "O preço deve ser um valor positivo." });
+    }
+
     const novoProduto = {
         id: produtos.length + 1,
         nome,
-        preco: parseFloat(preco),
+        preco: precoNumero,
         categoria,
         quantidade: parseInt(quantidade) || 0
     };
+
     produtos.push(novoProduto);
-    res.status(201).json({menssage: "Produto cadastrado com sucesso!", produto: novoProduto});
+    res.status(201).json({ message: "Produto cadastrado com sucesso!", produto: novoProduto });
 });
 
-// 3. DELETE
+// 3. DELETE - Remover
 app.delete('/api/produtos/:id', (req, res) => {
-    const {id} = req.params;
+    const idNumero = parseInt(req.params.id);
+    const indice = produtos.findIndex(p => p.id === idNumero);
 
-    const idNumero = parseInt(id);
-    const indice = produtos.findIndex(p => p.id === idNumero)
-
-    if(indice == -1){
-        return res.status(404).json({message: "Produto não encontrado"})
+    if (indice === -1) {
+        return res.status(404).json({ message: "Produto não encontrado" });
     }
 
-    // Remove o produto do array
     produtos.splice(indice, 1);
-
-    res.json({message: "Produto deletado"});
+    res.json({ message: "Produto deletado" });
 });
 
-// 4. PUT
-app.put('/api/produtos/:id', (req,res) => {
-    const {id} = req.params;
-    const {nome, preco, categoria, quantidade} = req.body;
+// 4. PUT - Atualizar
+app.put('/api/produtos/:id', (req, res) => {
+    const idNumero = parseInt(req.params.id);
+    const { nome, preco, categoria, quantidade } = req.body;
 
-    const idNumero = parseInt(id);
-    const produto = produtos.find(p => p.id === idNumero)
+    const produto = produtos.find(p => p.id === idNumero);
 
-    if(!produto){
-        return res.status(404).json({message: "Produto não encontrado"})
+    if (!produto) {
+        return res.status(404).json({ message: "Produto não encontrado" });
+    }
+
+    if (preco !== undefined) {
+        const precoNumero = parseFloat(preco);
+        if (isNaN(precoNumero) || precoNumero < 0) {
+            return res.status(400).json({ message: "O preço deve ser um valor positivo." });
+        }
+        produto.preco = precoNumero;
     }
 
     produto.nome = nome || produto.nome;
-    produto.preco = preco || produto.preco;
     produto.categoria = categoria || produto.categoria;
-    produto.quantidade = quantidade || produto.quantidade;
+    produto.quantidade = quantidade !== undefined ? parseInt(quantidade) : produto.quantidade;
 
-    res.json({message: "Produto atualizado com sucesso", produto});
+    res.json({ message: "Produto atualizado com sucesso", produto });
 });
 
-// Ligando o servidor
 app.listen(3001, () => {
     console.log("✅ Servidor rodando na porta 3001!");
 });
